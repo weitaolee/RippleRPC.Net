@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace RippleRPC.Net.Model
+namespace RippleRPC.Net.Exceptions
 {
     public class RippleError
     {

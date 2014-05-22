@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using RippleRPC.Net.Exceptions;
 using RippleRPC.Net.Infrastructure;
 using RippleRPC.Net.Model;
+using RippleRPC.Net.Model.Paths;
 
 namespace RippleRPC.Net
 {
@@ -172,8 +173,10 @@ namespace RippleRPC.Net
                 RippleError rippleError = resultToken.ToObject<RippleError>();
                 throw new RippleRpcException(rippleError); ;
             }
-            
-            return resultToken.SelectToken(objectElement, false).ToObject<T>();
+
+            if (!string.IsNullOrEmpty(objectElement))
+                return resultToken.SelectToken(objectElement, false).ToObject<T>();
+            return resultToken.ToObject<T>();
         }
 
         private T PagedRpcRequest<T>(RippleRequest rippleRequest, string objectElement, out Marker marker)
@@ -265,7 +268,7 @@ namespace RippleRPC.Net
             //return BuildAccountOfferList(request);            
         }
 
-        public List<Transaction> GetTransactions(string account, int minimumLedgerIndex = -1, int maximumLedgerIndex = -1, bool binary = false,
+        public List<TransactionRecord> GetTransactions(string account, int minimumLedgerIndex = -1, int maximumLedgerIndex = -1, bool binary = false,
             bool forward = false, int limit = 200)
         {
             if (string.IsNullOrEmpty(account))
@@ -279,7 +282,7 @@ namespace RippleRPC.Net
             param.forward = forward;
             param.limit = limit;
 
-            List<Transaction> transactions = new List<Transaction>();
+            List<TransactionRecord> transactions = new List<TransactionRecord>();
 
             Marker marker = null;
 
@@ -288,14 +291,14 @@ namespace RippleRPC.Net
                 param.marker = marker;
                 RippleRequest request = new RippleRequest("account_tx", new List<ExpandoObject> { param });
 
-                transactions.AddRange(PagedRpcRequest<List<Transaction>>(request, "transactions", out marker));
+                transactions.AddRange(PagedRpcRequest<List<TransactionRecord>>(request, "transactions", out marker));
 
             } while (marker != null);
 
             return transactions;
         }
 
-        public List<BookOffer> GetBookOffers(CurrencyItem takerPays, CurrencyItem takerGets, string ledger = "current", string taker = null, int limit = 200,
+        public List<BookOffer> GetBookOffers(RippleCurrency takerPays, RippleCurrency takerGets, string ledger = "current", string taker = null, int limit = 200,
             bool proof = false, bool autoBridge = false)
         {
             if (takerPays == null)
@@ -369,12 +372,12 @@ namespace RippleRPC.Net
 
         public int GetCurrentLedgerIndex()
         {
-            RippleRequest request = new RippleRequest("ledger_current ", new List<ExpandoObject>());
+            RippleRequest request = new RippleRequest("ledger_current", new List<ExpandoObject>());
 
             return RpcRequest<int>(request, "ledger_current_index");
         }
 
-        public RipplePath FindRipplePath(string fromAccount, string toAccount, int amount, List<CurrencyItem> currencies,
+        public PathSummary FindRipplePath(string fromAccount, string toAccount, double amount, List<RippleCurrency> currencies = null,
             string ledgerHash = null, string ledgerIndex = "current")
         {
             if (string.IsNullOrEmpty(fromAccount))
@@ -387,14 +390,30 @@ namespace RippleRPC.Net
             param.source_account = fromAccount;
             param.destination_account = toAccount;
             param.destination_amount = (amount * 1000000).ToString(CultureInfo.InvariantCulture);
-          //  param.source_currencies = currencies;
+            if (currencies != null)
+                param.source_currencies = currencies;
             if (!string.IsNullOrEmpty(ledgerHash))
                 param.ledger_hash = ledgerHash;
             param.ledger_index = ledgerIndex;
 
-            RippleRequest request = new RippleRequest("ripple_path_find ", new List<ExpandoObject> { param });
+            RippleRequest request = new RippleRequest("ripple_path_find", new List<ExpandoObject> { param });
 
-            return RpcRequest<RipplePath>(request, "offers");
+            return RpcRequest<PathSummary>(request, null);
+        }
+
+        public string SendXRP(string fromAccount, string toAccount, double amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Submit(string transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string Sign(string transaction)
+        {
+            throw new NotImplementedException();
         }
 
         private static bool CertificateValidationCallBack( object sender,

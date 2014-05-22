@@ -58,7 +58,7 @@ namespace RippleRPC.Net.Tests
         public void CanListTransactions()
         {
             RippleClient client = new RippleClient(new Uri("http://s1.ripple.com:51234"));
-            List<Transaction> transactions = client.GetTransactions(RippleAccount);
+            List<TransactionRecord> transactions = client.GetTransactions(RippleAccount);
             //List<Transaction> transactions = client.GetTransactions(RippleAccount, -1, -1, false, false, 1);
 
             //List<Transaction> transactions = client.GetTransactions(RippleAccount, -1, -1, false, false, 1);
@@ -71,9 +71,9 @@ namespace RippleRPC.Net.Tests
         {
             RippleClient client = new RippleClient(new Uri("http://s1.ripple.com:51234"));
             //CurrencyItem takerPays = new CurrencyItem {Currency = "USD", Issuer = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"};
-            CurrencyItem takerGets = new CurrencyItem {Currency = "XRP"};
+            RippleCurrency takerGets = new RippleCurrency {Currency = "XRP"};
 
-            CurrencyItem takerPays = new CurrencyItem { Currency = "PHP", Issuer = "rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4" };
+            RippleCurrency takerPays = new RippleCurrency { Currency = "PHP", Issuer = "rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4" };
             
             List<BookOffer> offers = client.GetBookOffers(takerPays, takerGets);
 
@@ -97,15 +97,19 @@ namespace RippleRPC.Net.Tests
         }
 
         [TestMethod]
-        public void CanFindPath()
+        public void CanGetClosedLedgerHash()
         {
             RippleClient client = new RippleClient(new Uri("http://s1.ripple.com:51234"));
-            CurrencyItem currencyItem = new CurrencyItem();
-            currencyItem.Currency = "PHP";
-            currencyItem.Issuer = "rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4";
+            var hash = client.GetClosedLedgerHash();
+            Assert.IsTrue(!string.IsNullOrEmpty(hash));
+        }
 
-            var path = client.FindRipplePath(RippleAccount, "rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC", 200,
-                new List<CurrencyItem> {currencyItem});
+        [TestMethod]
+        public void CanFindPath()
+        {
+            RippleClient client = new RippleClient(new Uri("http://s1.ripple.com:51234"));                 
+
+            var path = client.FindRipplePath(RippleAccount, "rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC", 200);
         }
 
     }

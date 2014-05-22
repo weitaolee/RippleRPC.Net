@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using RippleRPC.Net.Model;
+using RippleRPC.Net.Model.Paths;
 
 namespace Newtonsoft.Json.Converters
 {
@@ -28,6 +30,49 @@ namespace Newtonsoft.Json.Converters
             return initialTime.AddSeconds(ticks);
         }
         
+    }
+
+    public class PathConverter : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+
+            var vals = serializer.Deserialize(reader);
+            if (vals is JArray)
+            {
+                List<object> retObjects = new List<object>();
+                JArray jArray = (JArray) vals;
+
+                foreach (JToken val in jArray)
+                {
+                    try
+                    {
+                        retObjects.Add(val.ToObject<PathAccount>());
+                    }
+                    catch (JsonSerializationException) { }
+
+                    try
+                    {
+                        retObjects.Add(val.ToObject<PathCurrency>());
+                    }
+                    catch (JsonSerializationException) { }
+                }
+
+                return retObjects;
+            }
+            
+            return null;
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return true;
+        }
     }
 
     public class RippleValueConverter : JsonConverter
@@ -63,7 +108,7 @@ namespace Newtonsoft.Json.Converters
         {
             try
             {
-                return serializer.Deserialize<OfferItem>(reader);
+                return serializer.Deserialize<RippleCurrencyValue>(reader);
             }
             catch (JsonSerializationException){}
 

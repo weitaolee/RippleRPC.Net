@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using RippleRPC.Net.Model;
+using RippleRPC.Net.Model.Paths;
 
 namespace RippleRPC.Net
 {
@@ -13,38 +14,26 @@ namespace RippleRPC.Net
         List<AccountLine> GetAccountLines(string account, string peer, string ledgerIndex);
         List<AccountOffer> GetAccountOffers(string account, int accountIndex, string ledgerHash, string ledgerIndex);
 
-        List<Transaction> GetTransactions(string account, int minimumLedgerIndex, int maximumLedgerIndex, bool binary,
+        List<TransactionRecord> GetTransactions(string account, int minimumLedgerIndex, int maximumLedgerIndex, bool binary,
             bool forward, int limit);
 
-        List<BookOffer> GetBookOffers(CurrencyItem takerPays, CurrencyItem takerGets, string ledger, string taker, int limit,
+        List<BookOffer> GetBookOffers(RippleCurrency takerPays, RippleCurrency takerGets, string ledger, string taker, int limit,
             bool proof, bool autoBridge);
 
         LedgerSummary GetLedgerInformation(string ledgerIndex, bool full);
 
-        /// <summary>
-        /// May not be working
-        /// </summary>
-        /// <returns></returns>
         string GetClosedLedgerHash();
 
-        /// <summary>
-        /// May not be working
-        /// </summary>
-        /// <returns></returns>
         int GetCurrentLedgerIndex();
 
-        /// <summary>
-        /// May not be working
-        /// </summary>
-        /// <param name="fromAccount"></param>
-        /// <param name="toAccount"></param>
-        /// <param name="amount"></param>
-        /// <param name="currencies"></param>
-        /// <param name="ledgerHash"></param>
-        /// <param name="ledgerIndex"></param>
-        /// <returns></returns>
-        RipplePath FindRipplePath(string fromAccount, string toAccount, int amount, List<CurrencyItem> currencies,
+        PathSummary FindRipplePath(string fromAccount, string toAccount, double amount, List<RippleCurrency> currencies,
             string ledgerHash, string ledgerIndex);
+
+        string SendXRP(string fromAccount, string toAccount, double amount);
+
+        string Submit(string transaction);
+
+        string Sign(string transaction);
 
     }
 }

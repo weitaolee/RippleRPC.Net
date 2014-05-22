@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using RippleRPC.Net.Model;
+using RippleRPC.Net.Exceptions;
 
 namespace RippleRPC.Net.Infrastructure
 {

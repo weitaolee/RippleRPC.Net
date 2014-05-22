@@ -1,16 +1,23 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace RippleRPC.Net.Model
 {
     public class Transaction
     {
-        [JsonProperty("meta")]
-        public TransactionMeta Meta { get; set; }
+        public TransactionType TransactionType { get; set; }
 
-        [JsonProperty("tx")]
-        public TransactionDetail TransactionDetail { get; set; }
+        public string Account { get; set; }
 
-        [JsonProperty("validated")]
-        public bool Validated { get; set; }
+        public string Destination { get; set; }
+
+        public List<object> Paths { get; set; }
+
+        public RippleCurrencyValue Amount { get; set; }
+
+        public RippleCurrencyValue SendMax { get; set; }
     }
 }
