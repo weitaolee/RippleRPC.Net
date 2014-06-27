@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -43,6 +46,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Crypto\Encodings\B16.cs" />
+    <Compile Include="Crypto\IKeyPair.cs" />
+    <Compile Include="Crypto\KeyPair.cs" />
+    <Compile Include="Crypto\Seed.cs" />
+    <Compile Include="Crypto\Secp256K1.cs" />
+    <Compile Include="Crypto\EcdsaSignature.cs" />
+    <Compile Include="Crypto\Utils.cs" />
     <Compile Include="Exceptions\RippleRpcException.cs" />
     <Compile Include="Infrastructure\JsonConverters.cs" />
     <Compile Include="Infrastructure\RippleRequest.cs" />
@@ -68,12 +78,14 @@
     <Compile Include="Model\TransactionRecord.cs" />
     <Compile Include="Model\TransactionRecordDetail.cs" />
     <Compile Include="Model\TransactionRecordMeta.cs" />
+    <Compile Include="Model\Types\ISerializedType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RippleClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

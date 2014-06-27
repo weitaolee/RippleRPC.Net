@@ -33,7 +33,7 @@ namespace RippleRPC.Net
 
         string Submit(string transaction);
 
-        string Sign(string transaction);
+        string Sign(string transaction, string secret, bool offline);
 
     }
 }

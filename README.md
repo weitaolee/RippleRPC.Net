@@ -16,6 +16,8 @@ For example, here's how to get information about an account:
             AccountInformation accountInformation = client.GetAccountInformation("rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4);
             
             
+Some of the crypto routines were adopted from the Ripple-cs project [https://github.com/bhaal275/ripple-cs]
+
 Please post any questions or problems on the issues page.
 
 Ripples gratefully accepted: rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC

@@ -83,6 +83,8 @@ namespace RippleRPC.Net
             {
                 using (HttpWebResponse response = (HttpWebResponse)ex.Response)
                 {
+                    if (response == null)
+                        throw new Exception("null response");
                     using (StreamReader sr = new StreamReader(response.GetResponseStream()))
                     {
                         if (response.StatusCode != HttpStatusCode.InternalServerError)
@@ -406,12 +408,19 @@ namespace RippleRPC.Net
             throw new NotImplementedException();
         }
 
-        public string Submit(string transaction)
+        public string Submit(string transactionHash)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(transactionHash))
+                throw new ArgumentException("Transaction hash cannot be null", "transactionHash");
+            dynamic param = new ExpandoObject();
+            param.tx_blob = transactionHash;
+
+            RippleRequest request = new RippleRequest("submit", new List<ExpandoObject> { param });
+
+            return RpcRequest<string>(request, "engine_result_message");
         }
 
-        public string Sign(string transaction)
+        public string Sign(string transaction, string secret, bool offline)
         {
             throw new NotImplementedException();
         }
