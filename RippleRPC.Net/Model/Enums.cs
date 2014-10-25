@@ -1,12 +1,12 @@
 ﻿namespace RippleRPC.Net.Model
-{
-    public enum TransactionType
+{ 
+    public struct TransactionType
     {
-        Payment,
-        OfferCreate,
-        OfferCancel,
-        TrustSet,
-        AccountSet
+        public static readonly string Payment = "Payment";
+        public static readonly string OfferCreate = "OfferCreate";
+        public static readonly string OfferCancel = "OfferCancel";
+        public static readonly string TrustSet = "TrustSet"; 
+        public static readonly string AccountSet = "AccountSet";
     }
 
     public enum RippleType

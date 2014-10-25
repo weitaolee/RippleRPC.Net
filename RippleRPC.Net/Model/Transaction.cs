@@ -4,38 +4,61 @@ using System.Text;
 using Newtonsoft.Json;
 using RippleRPC.Net.Crypto;
 using RippleRPC.Net.Crypto.Encodings;
+using Newtonsoft.Json.Converters;
 
 namespace RippleRPC.Net.Model
 {
     public class Transaction
     {
         [JsonProperty]
-        public TransactionType TransactionType { get; set; }
-        
+        public string TransactionType { get; set; }
+
         [JsonProperty]
         public string Account { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string SigningPubKey { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string TxnSignature { get; set; }
+
 
         [JsonProperty]
         public string Destination { get; set; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public TransactionFlags Flags { get; set; }
+
+        [JsonConverter(typeof(PathConverter))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<object> Paths { get; set; }
 
+        [JsonConverter(typeof(RippleCurrencyValueConverter))]
         [JsonProperty]
         public RippleCurrencyValue Amount { get; set; }
 
+        [JsonProperty]
+        public int Fee { get; set; }
+
+        [JsonIgnore]
+        public int Sequence { get; set; }
+
+        [JsonConverter(typeof(RippleCurrencyValueConverter))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public RippleCurrencyValue SendMax { get; set; }
 
         [JsonIgnore]
-        public bool Signed { get { return !string.IsNullOrEmpty(Hash); } }
-
-        [JsonIgnore]
-        public string Hash { get; set; }
+        public bool Signed { get { return !string.IsNullOrEmpty(Hash); } }  
+        [JsonProperty("hash")]
+        public string Hash { get; set; } 
+        [JsonProperty("tx_blob")]
+        public string TxBlob { get; set; }
 
         public void Sign(string secret)
         {
             string s = ToJson();
             byte[] bytes = Seed.PassPhraseToSeedBytes(secret);
-            KeyPair keyPair = (KeyPair) Seed.CreateKeyPair(bytes);
+            KeyPair keyPair = (KeyPair)Seed.CreateKeyPair(bytes);
             byte[] transaction = Encoding.ASCII.GetBytes(s);
             byte[] signedTransaction = keyPair.Sign(transaction);
             Hash = B16.ToString(signedTransaction);
@@ -43,14 +66,30 @@ namespace RippleRPC.Net.Model
 
         public string ToJson()
         {
-            var transaction = "{" +  
-            "\"TransactionType\": \"Payment\", " +
-            "\"Account\": \"rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4\"," + 
-            "\"Destination\": \"rDLXQ8KEBn3Aw313bGzhEemx8cCPpGha3d\"," + 
-            "\"Amount\": \"1000\", " +
-            "\"Fee\": \"10\", " +
-            "\"Sequence\": 59 }";
+            var amount_json = string.Empty;
+            if (this.Amount != null)
+            {
+                //convert amount to json
+                if (this.Amount.Currency.ToUpper() != "XRP")
+                    amount_json = JsonConvert.SerializeObject(this.Amount);
+                //convert xrp amount to ripple drops
+                else
+                    amount_json = (this.Amount.Value * 1000000).ToString();
+            }
+            var transaction = "{" +
+            "\"TransactionType\": \"" + this.TransactionType.ToString() + "\", " +
+            "\"Account\": \"" + this.Account + "\"," +
+            "\"Destination\": \"" + this.Destination + "\"," +
+            "\"Amount\": \"" + amount_json + "\", " +
+            "\"Fee\": \"10\"}";
             return transaction;
         }
+    }
+
+    public enum TransactionFlags : uint
+    {
+        tfFullyCanonicalSig = 0x80000000,
+        tfNoDirectRipple = 0x00010000,
+        tfPartialPayment = 0x00020000,
     }
 }

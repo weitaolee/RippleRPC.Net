@@ -15,13 +15,13 @@ namespace Newtonsoft.Json.Converters
         {
             if (value is DateTime)
             {
-                DateTime currentValue = ((DateTime) value).ToUniversalTime();
+                DateTime currentValue = ((DateTime)value).ToUniversalTime();
                 TimeSpan span = currentValue - initialTime;
                 writer.WriteValue(span.TotalSeconds.ToString(CultureInfo.InvariantCulture));
             }
             else
                 throw new ArgumentException("Must provide a valid datetime struct", "value");
-            
+
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -29,14 +29,19 @@ namespace Newtonsoft.Json.Converters
             long ticks = Convert.ToInt64(reader.Value);
             return initialTime.AddSeconds(ticks);
         }
-        
+
     }
 
     public class PathConverter : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value is PathSummary)
+            {
+                if (value != null)
+                    writer.WriteValue(JsonConvert.SerializeObject(value));
+            }
+
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -46,7 +51,7 @@ namespace Newtonsoft.Json.Converters
             if (vals is JArray)
             {
                 List<object> retObjects = new List<object>();
-                JArray jArray = (JArray) vals;
+                JArray jArray = (JArray)vals;
 
                 foreach (JToken val in jArray)
                 {
@@ -65,7 +70,7 @@ namespace Newtonsoft.Json.Converters
 
                 return retObjects;
             }
-            
+
             return null;
         }
 
@@ -79,24 +84,64 @@ namespace Newtonsoft.Json.Converters
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            double val = ((double) value)*1000000;
+            double val = ((double)value) * 1000000;
             writer.WriteValue(val.ToString(CultureInfo.InvariantCulture));
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             double val = Convert.ToDouble(reader.Value);
-            return val/1000000;
+            return val / 1000000;
         }
 
         public override bool CanConvert(Type objectType)
         {
-            if (objectType == typeof (double))
+            if (objectType == typeof(double))
                 return true;
             return false;
         }
     }
+    public class RippleCurrencyValueConverter : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            var cv = value as RippleCurrencyValue;
+            if (cv != null)
+            {
+                if (cv.Currency.ToUpper() != "XRP")
+                    writer.WriteValue(JsonConvert.SerializeObject(cv));
+                else
+                {
+                    double val = cv.Value * 1000000;
+                    writer.WriteValue(val.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+        }
 
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var result = new RippleCurrencyValue();
+
+            double val = 0;
+            if (double.TryParse(reader.Value.ToString(), out val))
+            {
+                result = new RippleCurrencyValue { Value = val / 1000000, Currency = "XRP", Issuer = string.Empty };
+            }
+            else
+            {
+                result = serializer.Deserialize<RippleCurrencyValue>(reader);
+            }
+
+            return result;
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            if (objectType == typeof(double))
+                return true;
+            return false;
+        }
+    }
     public class OfferItemConverter : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -110,7 +155,7 @@ namespace Newtonsoft.Json.Converters
             {
                 return serializer.Deserialize<RippleCurrencyValue>(reader);
             }
-            catch (JsonSerializationException){}
+            catch (JsonSerializationException) { }
 
             try
             {
@@ -118,7 +163,7 @@ namespace Newtonsoft.Json.Converters
                 return val / 1000000;
             }
             catch (JsonSerializationException) { }
-            
+
             return null;
         }
 
@@ -136,17 +181,17 @@ namespace Newtonsoft.Json.Converters
         //adapted from: http://stackoverflow.com/questions/794838/datacontractjsonserializer-and-enums/794962#794962
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteValue(((T) value).ToString());
+            writer.WriteValue(((T)value).ToString());
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return Enum.Parse(typeof(T), reader.Value.ToString(), true);            
+            return Enum.Parse(typeof(T), reader.Value.ToString(), true);
         }
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof (T);
+            return objectType == typeof(T);
         }
     }
 }

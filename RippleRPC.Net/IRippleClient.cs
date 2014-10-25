@@ -1,39 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using RippleRPC.Net.Exceptions;
 using RippleRPC.Net.Model;
 using RippleRPC.Net.Model.Paths;
+using System;
+using System.Collections.Generic;
 
 namespace RippleRPC.Net
 {
-    public interface IRippleClient
+    interface IRippleClient
     {
+        void FindRipplePath(string fromAccount, string toAccount, double amount, Action<RippleError, PathSummary> callback = null, System.Collections.Generic.List<RippleCurrency> currencies = null, string ledgerHash = null, string ledgerIndex = "current");
+        void GetAccountInformation(string account, Action<RippleError, AccountInformation> callback = null, uint? index = null, string ledgerHash = null, bool strict = false, string ledgerIndex = "current");
+        void GetAccountLines(string account, Action<RippleError, System.Collections.Generic.List<AccountLine>> callback = null, string peer = null, string ledgerIndex = "current");
+        void GetAccountOffers(string account, Action<RippleError, List<AccountOffer>> callback = null, int accountIndex = 0, string ledgerHash = null, string ledgerIndex = "current");
+        void GetBookOffers(RippleCurrency takerPays, RippleCurrency takerGets, Action<RippleError, List<BookOffer>> callback = null, string ledger = "current", string taker = null, int limit = 200, bool proof = false, bool autoBridge = false, Marker marker = null);
+        void GetClosedLedgerHash(Action<RippleError, string> callback = null);
+        void GetCurrentLedgerIndex(Action<RippleError, int> callback = null);
+        //LedgerSummary GetLedgerInformation(string ledgerIndex = "current", bool full = true);
+        void GetTransactions(string account, Action<RippleError, List<TransactionRecord>> callback = null, int minimumLedgerIndex = -1, int maximumLedgerIndex = -1, bool binary = false, bool forward = false, int limit = 200, Marker marker = null);
+        void SendXRP(string fromAccount, string secret, string toAccount, double amount, Action<RippleError, PaymentSubmitResult> callback = null);
+        void Sign(Transaction transaction, string secret, Action<RippleError, TransactionSigned> callback = null, bool offline = false);
+        void Submit(string transactionHash, Action<RippleError, PaymentSubmitResult> callback = null);
         Uri Uri { get; set; }
-        NetworkCredential Credentials { get; set; }
-        AccountInformation GetAccountInformation(string account, uint? index, string ledgerHash, bool strict, string ledgerIndex);
-        List<AccountLine> GetAccountLines(string account, string peer, string ledgerIndex);
-        List<AccountOffer> GetAccountOffers(string account, int accountIndex, string ledgerHash, string ledgerIndex);
-
-        List<TransactionRecord> GetTransactions(string account, int minimumLedgerIndex, int maximumLedgerIndex, bool binary,
-            bool forward, int limit);
-
-        List<BookOffer> GetBookOffers(RippleCurrency takerPays, RippleCurrency takerGets, string ledger, string taker, int limit,
-            bool proof, bool autoBridge);
-
-        LedgerSummary GetLedgerInformation(string ledgerIndex, bool full);
-
-        string GetClosedLedgerHash();
-
-        int GetCurrentLedgerIndex();
-
-        PathSummary FindRipplePath(string fromAccount, string toAccount, double amount, List<RippleCurrency> currencies,
-            string ledgerHash, string ledgerIndex);
-
-        string SendXRP(string fromAccount, string toAccount, double amount);
-
-        string Submit(string transaction);
-
-        string Sign(string transaction, string secret, bool offline);
-
+        bool WebSocketConnected { get; set; }
     }
 }

@@ -3,10 +3,13 @@ using RippleRPC.Net.Exceptions;
 
 namespace RippleRPC.Net.Infrastructure
 {
-    public class RippleResponse<T>
+    public class RippleResponse
     {
-        [JsonProperty("result")]
-        public T Result { get; set; }
+        [JsonProperty("id")]
+        public int ID { get; set; }
+
+        //[JsonProperty("result")]
+        //public T Result { get; set; }
         public RippleError Error { get; set; }
 
         [JsonProperty("ledger_current_index")]

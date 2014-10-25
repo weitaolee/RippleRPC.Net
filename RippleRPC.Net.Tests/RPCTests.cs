@@ -5,15 +5,16 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RippleRPC.Net.Exceptions;
 using RippleRPC.Net.Model;
+using System.Threading;
 
 namespace RippleRPC.Net.Tests
 {
     [TestClass]
     public class RpcTests
     {
-
+        private const bool debug = true;
         private const string RippleAccount = "rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4";
-        private const string RippledServer = "http://s1.ripple.com:51234";
+        private const string RippledWebSocketServer = "wss://s-east.ripple.com:443";
         //http://s1.ripple.com:51234
         //rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC
         //"https://s1.ripple.com:443";
@@ -21,118 +22,137 @@ namespace RippleRPC.Net.Tests
         [TestMethod]
         public void CanGetAccount()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            AccountInformation accountInformation = client.GetAccountInformation(RippleAccount);
-            Assert.IsNotNull(accountInformation);
-        }
-
-        [TestMethod]
-        public void CanHandleError()
-        {
-
-            try
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.GetAccountInformation(RippleAccount, (error, result) =>
             {
-                RippleClient client = new RippleClient(new Uri(RippledServer));
-                client.GetAccountInformation("foo");
-
-                Assert.Fail("We passed without failing");
-            }
-            catch (RippleRpcException ex)
-            {
-                Assert.IsNotNull(ex);                
-            }            
+                Assert.IsNotNull(result);
+            });
         }
 
         [TestMethod]
         public void CanGetAccountLines()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            List<AccountLine> lines = client.GetAccountLines(RippleAccount);
-            Assert.IsTrue(lines.Count > 0, "Returned zero lines");
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.GetAccountLines(RippleAccount, (error, result) => { Assert.IsTrue(result.Count > 0, "Returned zero lines"); });
         }
 
         [TestMethod]
         public void CanGetAccountOffers()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            List<AccountOffer> offers = client.GetAccountOffers(RippleAccount);
-            Assert.IsTrue(offers.Count > 0, "Returned zero lines");
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.GetAccountOffers(RippleAccount, (error, result) => { Assert.IsTrue(result.Count > -1, "Returned zero lines"); });
         }
 
         [TestMethod]
         public void CanListTransactions()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            List<TransactionRecord> transactions = client.GetTransactions(RippleAccount);
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.GetTransactions(RippleAccount, (error, result) => { Assert.IsTrue(result.Count > 0, "Returned no transactions"); });
             //List<Transaction> transactions = client.GetTransactions(RippleAccount, -1, -1, false, false, 1);
 
-            //List<Transaction> transactions = client.GetTransactions(RippleAccount, -1, -1, false, false, 1);
-
-            Assert.IsTrue(transactions.Count > 0, "Returned no transactions");
+            //List<Transaction> transactions = client.GetTransactions(RippleAccount, -1, -1, false, false, 1); 
         }
 
         [TestMethod]
         public void CanGetBookOffers()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
             //CurrencyItem takerPays = new CurrencyItem {Currency = "USD", Issuer = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"};
-            RippleCurrency takerGets = new RippleCurrency {Currency = "XRP"};
+            RippleCurrency takerGets = new RippleCurrency { Currency = "XRP" };
 
             RippleCurrency takerPays = new RippleCurrency { Currency = "PHP", Issuer = "rho3u4kXc5q3chQFKfn9S1ZqUCya1xT3t4" };
-            
-            List<BookOffer> offers = client.GetBookOffers(takerPays, takerGets);
 
-            Assert.IsTrue(offers.Count > 0, "Returned no transactions");
+            client.GetBookOffers(takerPays, takerGets, (error, result) => { Assert.IsTrue(result.Count > -1, "Returned no BookOffer"); });
         }
 
-        [TestMethod]
-        public void CanGetLedgerInformation()
-        {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            var ledgerInfo = client.GetLedgerInformation();
-            Assert.IsNotNull(ledgerInfo);
-        }
+        //[TestMethod]
+        //public void CanGetLedgerInformation()
+        //{
+        //    RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+        //    var ledgerInfo = client.GetLedgerInformation();
+        //    Assert.IsNotNull(ledgerInfo);
+        //}
 
         [TestMethod]
         public void CanGetCurrentLedgerIndex()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            var index = client.GetCurrentLedgerIndex();
-            Assert.IsTrue(index > 0);
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.GetCurrentLedgerIndex((error, result) => { Assert.IsTrue(result > 0); });
         }
 
         [TestMethod]
         public void CanGetClosedLedgerHash()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            var hash = client.GetClosedLedgerHash();
-            Assert.IsTrue(!string.IsNullOrEmpty(hash));
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+
+            client.GetClosedLedgerHash((error, result) => { Assert.IsTrue(!string.IsNullOrEmpty(result)); });
         }
 
         [TestMethod]
         public void CanFindPath()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));                 
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
 
-            var path = client.FindRipplePath(RippleAccount, "rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC", 200);
+            client.FindRipplePath(RippleAccount, "rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC", 200, (error, result) =>
+            {
+                Assert.IsNotNull(result);
+            });
         }
 
         [TestMethod]
         public void CanSubmitTransaction()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
 
-            var result = client.Submit("1200002280000000240000003A6140000000000003E868400000000000000A73210254C6E84863EB37360F33430E9CE2C28CF609CE15E3FF6AEC909E62620659EC75744630440220429208E5B63A6FC5C28DA9587A2608A7694B67AB8739D882146F6BC1494DB67B02207CC2AC24C7C3EF94B6A2E0BBCC4E1DC5F4C4260ADC4E2B130569E7370EF3F86D811429A21BD3C8CEDECFBBA54F2D1A9B1967DA2868BC83148752CC353EA495AE6830E6B7D2469C88DB59403F");
+            client.Submit("1200002280000000240000003A6140000000000003E868400000000000000A73210254C6E84863EB37360F33430E9CE2C28CF609CE15E3FF6AEC909E62620659EC75744630440220429208E5B63A6FC5C28DA9587A2608A7694B67AB8739D882146F6BC1494DB67B02207CC2AC24C7C3EF94B6A2E0BBCC4E1DC5F4C4260ADC4E2B130569E7370EF3F86D811429A21BD3C8CEDECFBBA54F2D1A9B1967DA2868BC83148752CC353EA495AE6830E6B7D2469C88DB59403F"
+                , (error, result) =>
+                {
+                    Assert.IsNull(error);
+                    Assert.IsNotNull(result);
+                });
+
+
+            while (debug)
+            {
+                Thread.Sleep(10 * 1000);
+            }
         }
 
         [TestMethod]
         public void CanSignTransaction()
         {
-            RippleClient client = new RippleClient(new Uri(RippledServer));
-            Transaction transaction = new Transaction();
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            var transaction = new Transaction
+            {
+                Flags = TransactionFlags.tfFullyCanonicalSig,
+                Fee = 10000,
+                TransactionType = TransactionType.Payment,
+                Account = "rPGKpTsgSaQiwLpEekVj1t5sgYJiqf2HDC",
+                Destination = "rUSweLuRhP8xWd11FsnEjbDo8hJPcvnuLm",
+                Amount = new RippleCurrencyValue { Currency = "XRP", Issuer = string.Empty, Value = 1.2 }
+            };
+
             transaction.Sign("sh5VoxNBQgFYt32icy6T2jkC7MapV");
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(transaction.Hash));
-          //  var result = client.Submit(transaction.Hash);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(transaction.TxBlob));
+            //var result = client.Submit(transaction.Hash);
+        }
+
+        [TestMethod]
+        public void CanSendXRP()
+        {
+            RippleClient client = new RippleClient(new Uri(RippledWebSocketServer));
+            client.SendXRP(RippleAccount, "sh5VoxNBQgFYt32icy6T2jkC7MapV", "rUSweLuRhP8xWd11FsnEjbDo8hJPcvnuLm", 1.2, (error, result) =>
+            {
+                Assert.IsNull(error);
+                Assert.IsNotNull(result);
+            });
+            //var result = client.Submit(transaction.Hash);
+
+
+            while (debug)
+            {
+                Thread.Sleep(10 * 1000);
+            }
         }
 
         [TestMethod]
@@ -183,7 +203,7 @@ namespace RippleRPC.Net.Tests
             Dictionary<string, KeyValuePair<int, int>> values = new Dictionary<string, KeyValuePair<int, int>>();
 
             //Int16
-            values.Add("LedgerEntryType", new KeyValuePair<int, int>(1,1));
+            values.Add("LedgerEntryType", new KeyValuePair<int, int>(1, 1));
             values.Add("TransactionType", new KeyValuePair<int, int>(1, 2));
 
             //Int32
